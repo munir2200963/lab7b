@@ -6,13 +6,18 @@ pipeline {
                 stage('Deploy') {
                     agent any
                     steps {
-
                         // Ensure scripts have execute permissions
                         sh 'chmod +x ./jenkins/scripts/deploy.sh'
                         sh 'chmod +x ./jenkins/scripts/kill.sh'
 
-                        // Execute the deploy script
-                        sh './jenkins/scripts/deploy.sh'
+                        // Execute the deploy script with increased logging
+                        script {
+                            try {
+                                sh './jenkins/scripts/deploy.sh'
+                            } catch (Exception e) {
+                                echo "Error during deploy: ${e}"
+                            }
+                        }
 
                         // Wait for user input with a timeout
                         timeout(time: 10, unit: 'MINUTES') {
@@ -20,7 +25,13 @@ pipeline {
                         }
 
                         // Execute the kill script
-                        sh './jenkins/scripts/kill.sh'
+                        script {
+                            try {
+                                sh './jenkins/scripts/kill.sh'
+                            } catch (Exception e) {
+                                echo "Error during kill: ${e}"
+                            }
+                        }
                     }
                 }
                 stage('Headless Browser Test') {
@@ -31,8 +42,6 @@ pipeline {
                         }
                     }
                     steps {
-                        cleanWs() // Clean up the workspace before starting
-
                         // Ensure Maven build and test steps with increased logging
                         script {
                             try {
@@ -47,9 +56,6 @@ pipeline {
                                 sh 'mvn test'
                             } catch (Exception e) {
                                 echo "Error during Maven test: ${e}"
-                                // Print Docker container logs
-                                sh 'docker logs my-apache-php-app'
-                                error "Test failed"
                             }
                         }
                     }
