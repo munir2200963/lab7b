@@ -60,6 +60,8 @@ pipeline {
                     }
                     post {
                         always {
+                            // List the contents of the surefire-reports directory
+                            sh 'ls -la target/surefire-reports'
                             // Record test results
                             junit 'target/surefire-reports/*.xml'
                         }
