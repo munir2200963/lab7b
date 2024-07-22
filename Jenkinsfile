@@ -6,8 +6,6 @@ pipeline {
                 stage('Deploy') {
                     agent any
                     steps {
-                        cleanWs() // Clean up the workspace before starting
-
                         // Ensure scripts have execute permissions
                         sh 'chmod +x ./jenkins/scripts/deploy.sh'
                         sh 'chmod +x ./jenkins/scripts/kill.sh'
@@ -32,8 +30,6 @@ pipeline {
                         }
                     }
                     steps {
-                        cleanWs() // Clean up the workspace before starting
-
                         // Ensure Maven build and test steps with increased logging
                         script {
                             try {
