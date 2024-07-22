@@ -13,10 +13,8 @@ pipeline {
                         // Execute the deploy script
                         sh './jenkins/scripts/deploy.sh'
 
-                        // Wait for user input with a timeout
-                        timeout(time: 10, unit: 'MINUTES') {
-                            input message: 'Finished using the web site? (Click "Proceed" to continue)'
-                        }
+                        // Wait for 3 minutes before proceeding automatically
+                        sleep time: 3, unit: 'MINUTES'
 
                         // Execute the kill script
                         sh './jenkins/scripts/kill.sh'
