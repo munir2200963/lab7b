@@ -6,18 +6,14 @@ pipeline {
                 stage('Deploy') {
                     agent any
                     steps {
+                        cleanWs() // Clean up the workspace before starting
+
                         // Ensure scripts have execute permissions
                         sh 'chmod +x ./jenkins/scripts/deploy.sh'
                         sh 'chmod +x ./jenkins/scripts/kill.sh'
 
-                        // Execute the deploy script with increased logging
-                        script {
-                            try {
-                                sh './jenkins/scripts/deploy.sh'
-                            } catch (Exception e) {
-                                echo "Error during deploy: ${e}"
-                            }
-                        }
+                        // Execute the deploy script
+                        sh './jenkins/scripts/deploy.sh'
 
                         // Wait for user input with a timeout
                         timeout(time: 10, unit: 'MINUTES') {
@@ -25,13 +21,7 @@ pipeline {
                         }
 
                         // Execute the kill script
-                        script {
-                            try {
-                                sh './jenkins/scripts/kill.sh'
-                            } catch (Exception e) {
-                                echo "Error during kill: ${e}"
-                            }
-                        }
+                        sh './jenkins/scripts/kill.sh'
                     }
                 }
                 stage('Headless Browser Test') {
@@ -42,6 +32,8 @@ pipeline {
                         }
                     }
                     steps {
+                        cleanWs() // Clean up the workspace before starting
+
                         // Ensure Maven build and test steps with increased logging
                         script {
                             try {
@@ -54,8 +46,15 @@ pipeline {
                         script {
                             try {
                                 sh 'mvn test'
+                                // List the contents of the target directory
+                                sh 'ls -la target'
+                                // List the contents of the surefire-reports directory
+                                sh 'ls -la target/surefire-reports'
                             } catch (Exception e) {
                                 echo "Error during Maven test: ${e}"
+                                // Print Docker container logs
+                                sh 'docker logs my-apache-php-app'
+                                error "Test failed"
                             }
                         }
                     }
